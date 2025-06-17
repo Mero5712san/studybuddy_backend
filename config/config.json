@@ -1,0 +1,10 @@
+{
+  "development": {
+    "username": "root",
+    "password": "mero5712",
+    "database": "studybuddy",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "logging": false
+  }
+}
