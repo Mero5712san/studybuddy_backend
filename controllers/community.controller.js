@@ -89,3 +89,27 @@ exports.getAnswers = async (req, res) => {
         res.status(400).json({ error: 'Error fetching answers' });
     }
 }
+
+
+const { Message, User } = require("../models");
+
+exports.getCommunityMessages = async (req, res) => {
+    try {
+        const messages = await Message.findAll({
+            where: { receiver_id: null }, // Only community messages
+            include: [
+                {
+                    model: User,
+                    as: "sender",
+                    attributes: ["id", "name"], // optional
+                },
+            ],
+            order: [["createdAt", "ASC"]],
+        });
+
+        res.status(200).json(messages);
+    } catch (err) {
+        console.error("Error fetching community messages:", err);
+        res.status(500).json({ error: "Failed to fetch messages" });
+    }
+};

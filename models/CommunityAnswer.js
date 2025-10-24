@@ -13,4 +13,3 @@ module.exports = (sequelize, DataTypes) => {
 
     return CommunityAnswer;
 };
-  

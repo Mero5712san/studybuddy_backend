@@ -130,7 +130,7 @@ exports.reportNote = async (req, res) => {
             return res.status(400).json({ error: "You have already reported this note" });
         }
 
-        const count = await Report.count({ where: { reported_note_id: note_id } }); // ✅ Fixed here
+        const count = await Report.count({ where: { reported_note_id: note_id } }); //   Fixed here
 
         const status = count < 3 ? 'pending' : 'blocked';
 

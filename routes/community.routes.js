@@ -9,5 +9,7 @@ router.post('/question/:id/answer', authMiddleware, CommunityController.answerQu
 router.post('/answer/:id/rate', authMiddleware, CommunityController.rateAnswer);
 router.post('/question/:id/rate', authMiddleware, CommunityController.rateQuestion);
 router.get('/answers/:id', CommunityController.getAnswers);
+router.get("/messages", CommunityController.getCommunityMessages);
+
 
 module.exports = router;

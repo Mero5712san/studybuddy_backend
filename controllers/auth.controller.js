@@ -22,7 +22,7 @@ exports.register = async (req, res) => {
         delete verifiedEmails[email];
         res.status(201).json(user);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        console.log(err);
     }
 };
 
@@ -36,7 +36,7 @@ exports.sendOtp = async (req, res) => {
         service: 'Gmail',
         auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
     });
-
+    console.log("user details ", process.env.EMAIL_USER, process.env.EMAIL_PASS)
     const mailOptions = {
         from: process.env.EMAIL_USER,
         to: email,
@@ -45,11 +45,15 @@ exports.sendOtp = async (req, res) => {
     };
 
     try {
+        console.log("   Sending OTP to:", email);
         await transporter.sendMail(mailOptions);
+        console.log(" OTP sent successfully to:", email);
         res.status(200).json({ message: 'OTP sent' });
     } catch (err) {
-        res.status(500).json({ error: 'OTP sending failed' });
+        console.error("    Error sending OTP:", err);
+        res.status(500).json({ error: 'OTP sending failed', details: err.message });
     }
+
 };
 
 exports.verifyOtp = (req, res) => {
@@ -70,6 +74,8 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ where: { email } });
+        console.log(user);
+        console.log("password", password);
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }

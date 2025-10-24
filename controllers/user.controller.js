@@ -31,7 +31,7 @@ exports.getCurrentUser = async (req, res) => {
 
         res.status(200).json(user);
     } catch (err) {
-        console.error('JWT Error:', err); 
+        console.error('JWT Error:', err);
         res.status(401).json({ error: 'Invalid or expired token' });
     }
 };
@@ -39,7 +39,7 @@ exports.getCurrentUser = async (req, res) => {
 exports.getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User.findOne({ where: { id, is_blocked: false } }); // ✅ fixed
+        const user = await User.findOne({ where: { id, is_blocked: false } }); //   fixed
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -119,14 +119,14 @@ exports.rateUser = async (req, res) => {
         return res.status(500).json({ error: err.message });
     }
 };
-  
+
 
 
 exports.reportUser = async (req, res) => {
     try {
         const { id } = req.params;
         const { reason } = req.body;
-        const user = await User.findOne({ where: { id, is_blocked: false } }); // ✅ fixed
+        const user = await User.findOne({ where: { id, is_blocked: false } }); //   fixed
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
@@ -164,12 +164,12 @@ exports.reviewUser = async (req, res) => {
         const { id } = req.params;
         const { review } = req.body;
 
-        const user = await User.findOne({ where: { id } }); // ✅ fixed
+        const user = await User.findOne({ where: { id } }); //   fixed
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        const report = await Report.findOne({ where: { reported_user_id: id } }); // ✅ fixed
+        const report = await Report.findOne({ where: { reported_user_id: id } }); //   fixed
         if (!report) {
             return res.status(404).json({ error: 'Report not found' });
         }
