@@ -18,16 +18,18 @@ const sessionRoutes = require('./routes/session.routes');
 const communityRoutes = require('./routes/community.routes');
 const notificationRoutes = require('./routes/notifications.routes');
 const feedbackRoutes = require('./routes/feedback.routes');
+const assistantRoutes = require('./routes/assistant.routes');
 
 
 app.use('/api/auth', authRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/messages', messageRoutes); 
+app.use('/api/messages', messageRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/assistant', assistantRoutes);
 
 
 module.exports = app;
