@@ -6,7 +6,43 @@ const Sequelize = require('sequelize');
 const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const allConfigs = require(__dirname + '/../config/config.json');
+
+function getEnvConfig() {
+  if (process.env.DATABASE_URL) {
+    return {
+      use_env_variable: 'DATABASE_URL',
+      dialect: process.env.DB_DIALECT || 'mysql',
+      logging: false,
+    };
+  }
+
+  if (
+    process.env.DB_DATABASE &&
+    process.env.DB_USERNAME &&
+    process.env.DB_HOST
+  ) {
+    return {
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD || null,
+      database: process.env.DB_DATABASE,
+      host: process.env.DB_HOST,
+      dialect: process.env.DB_DIALECT || 'mysql',
+      logging: false,
+    };
+  }
+
+  return null;
+}
+
+const config = allConfigs[env] || getEnvConfig() || allConfigs.development;
+
+if (!config) {
+  throw new Error(
+    `No database configuration found for NODE_ENV="${env}". ` +
+    'Add an environment section in config/config.json or set DB_DATABASE, DB_USERNAME, and DB_HOST (or DATABASE_URL).'
+  );
+}
 const db = {};
 
 let sequelize;
