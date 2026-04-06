@@ -11,11 +11,17 @@ const createMailTransporter = () => {
     const emailUser = (process.env.EMAIL_USER || '').trim();
     // Render/Gmail env values are sometimes copied with spaces every 4 chars.
     const emailPass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpPort = Number(process.env.SMTP_PORT || 587);
+    const smtpSecure = process.env.SMTP_SECURE
+        ? process.env.SMTP_SECURE === 'true'
+        : smtpPort === 465;
 
     return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpSecure,
+        requireTLS: !smtpSecure,
         auth: {
             user: emailUser,
             pass: emailPass
@@ -64,6 +70,7 @@ exports.sendOtp = async (req, res) => {
         otpStore[email] = otp;
 
         const transporter = createMailTransporter();
+        await transporter.verify();
 
         const mailOptions = {
             from: (process.env.EMAIL_USER || '').trim(),
@@ -85,7 +92,8 @@ exports.sendOtp = async (req, res) => {
         });
         res.status(500).json({
             error: 'Failed to send OTP',
-            details: process.env.NODE_ENV === 'development' ? err.message : 'Please try again later'
+            details: err.message,
+            code: err.code
         });
     }
 
@@ -132,6 +140,7 @@ exports.forgotPassword = async (req, res) => {
         otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 };
 
         const transporter = createMailTransporter();
+        await transporter.verify();
 
         await transporter.sendMail({
             from: (process.env.EMAIL_USER || '').trim(),
