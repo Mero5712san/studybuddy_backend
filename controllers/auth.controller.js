@@ -7,6 +7,22 @@ const otpGenerator = require('otp-generator');
 const otpStore = {};
 const verifiedEmails = {};
 
+const createMailTransporter = () => {
+    const emailUser = (process.env.EMAIL_USER || '').trim();
+    // Render/Gmail env values are sometimes copied with spaces every 4 chars.
+    const emailPass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+
+    return nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: emailUser,
+            pass: emailPass
+        }
+    });
+};
+
 
 exports.register = async (req, res) => {
     try {
@@ -47,16 +63,10 @@ exports.sendOtp = async (req, res) => {
         const otp = otpGenerator.generate(6, { digits: true, alphabets: false, upperCase: false });
         otpStore[email] = otp;
 
-        const transporter = nodemailer.createTransport({
-            service: 'Gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-        });
+        const transporter = createMailTransporter();
 
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: (process.env.EMAIL_USER || '').trim(),
             to: email,
             subject: 'StudyBuddy Email Verification',
             text: `Your OTP is: ${otp}. This OTP will expire in 10 minutes.`
@@ -67,7 +77,12 @@ exports.sendOtp = async (req, res) => {
         console.log("OTP sent successfully to:", email);
         res.status(200).json({ message: 'OTP sent successfully' });
     } catch (err) {
-        console.error("Error sending OTP:", err.message);
+        console.error('Error sending OTP:', {
+            message: err.message,
+            code: err.code,
+            responseCode: err.responseCode,
+            command: err.command
+        });
         res.status(500).json({
             error: 'Failed to send OTP',
             details: process.env.NODE_ENV === 'development' ? err.message : 'Please try again later'
@@ -116,16 +131,10 @@ exports.forgotPassword = async (req, res) => {
         const otp = otpGenerator.generate(6, { digits: true, alphabets: false, upperCase: false });
         otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 };
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS,
-            },
-        });
+        const transporter = createMailTransporter();
 
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            from: (process.env.EMAIL_USER || '').trim(),
             to: email,
             subject: 'Your OTP for Password Reset',
             html: `<p>Your OTP is <b>${otp}</b>. It will expire in 5 minutes.</p>`,
