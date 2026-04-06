@@ -27,31 +27,51 @@ exports.register = async (req, res) => {
 };
 
 exports.sendOtp = async (req, res) => {
-    const { email } = req.body;
-
-    const otp = otpGenerator.generate(6, { digits: true, alphabets: false, upperCase: false });
-    otpStore[email] = otp;
-
-    const transporter = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
-    console.log("user details ", process.env.EMAIL_USER, process.env.EMAIL_PASS)
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'StudyBuddy Email Verification',
-        text: `Your OTP is: ${otp}`
-    };
-
     try {
-        console.log("   Sending OTP to:", email);
+        const { email } = req.body;
+
+        // Validate email input
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
+        // Check if email environment variables are configured
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.error('Email service not configured: EMAIL_USER or EMAIL_PASS missing');
+            return res.status(500).json({
+                error: 'Email service temporarily unavailable',
+                details: 'Server configuration incomplete'
+            });
+        }
+
+        const otp = otpGenerator.generate(6, { digits: true, alphabets: false, upperCase: false });
+        otpStore[email] = otp;
+
+        const transporter = nodemailer.createTransport({
+            service: 'Gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            },
+        });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'StudyBuddy Email Verification',
+            text: `Your OTP is: ${otp}. This OTP will expire in 10 minutes.`
+        };
+
+        console.log("Sending OTP to:", email);
         await transporter.sendMail(mailOptions);
-        console.log(" OTP sent successfully to:", email);
-        res.status(200).json({ message: 'OTP sent' });
+        console.log("OTP sent successfully to:", email);
+        res.status(200).json({ message: 'OTP sent successfully' });
     } catch (err) {
-        console.error("    Error sending OTP:", err);
-        res.status(500).json({ error: 'OTP sending failed', details: err.message });
+        console.error("Error sending OTP:", err.message);
+        res.status(500).json({
+            error: 'Failed to send OTP',
+            details: process.env.NODE_ENV === 'development' ? err.message : 'Please try again later'
+        });
     }
 
 };
