@@ -7,6 +7,8 @@ const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const allConfigs = require(__dirname + '/../config/config.json');
+const envDatabase = process.env.DB_DATABASE || process.env.DB_NAME;
+const envPort = Number(process.env.DB_PORT || 3306);
 
 function getEnvConfig() {
   if (process.env.DATABASE_URL) {
@@ -18,15 +20,16 @@ function getEnvConfig() {
   }
 
   if (
-    process.env.DB_DATABASE &&
+    envDatabase &&
     process.env.DB_USERNAME &&
     process.env.DB_HOST
   ) {
     return {
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD || null,
-      database: process.env.DB_DATABASE,
+      database: envDatabase,
       host: process.env.DB_HOST,
+      port: envPort,
       dialect: process.env.DB_DIALECT || 'mysql',
       logging: false,
     };
@@ -40,7 +43,7 @@ const config = allConfigs[env] || getEnvConfig() || allConfigs.development;
 if (!config) {
   throw new Error(
     `No database configuration found for NODE_ENV="${env}". ` +
-    'Add an environment section in config/config.json or set DB_DATABASE, DB_USERNAME, and DB_HOST (or DATABASE_URL).'
+    'Add an environment section in config/config.json or set DB_DATABASE/DB_NAME, DB_USERNAME, and DB_HOST (or DATABASE_URL).'
   );
 }
 const db = {};
